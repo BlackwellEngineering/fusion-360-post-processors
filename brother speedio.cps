@@ -801,12 +801,17 @@ function initializeSmoothing() {
   }
   // automatically determine smoothing level
   if (smoothing.level == 9999) {
-    if (smoothingSettings.autoLevelCriteria == "stock") { // determine auto smoothing level based on stockToLeave
+    if (currentSection.strategy == "face") {
+      smoothing.level = smoothingSettings.roughing; // set roughing level
+    } else if (currentSection.strategy == "contour2d" || currentSection.strategy == "slot" ||
+              currentSection.strategy == "path3d" || currentSection.strategy == "bore" ||
+              currentSection.strategy == "chamfer2d") {
+      smoothing.level = smoothingSettings.finishing; // set finishing level
+    } else if (smoothingSettings.autoLevelCriteria == "stock") { // determine auto smoothing level based on stockToLeave
       var stockToLeave = xyzFormat.getResultingValue(getParameter("operation:stockToLeave", 0));
       var verticalStockToLeave = xyzFormat.getResultingValue(getParameter("operation:verticalStockToLeave", 0));
       if (((stockToLeave >= smoothingSettings.thresholdRoughing) ||
-          ((stockToLeave > 0) && (verticalStockToLeave >= smoothingSettings.thresholdRoughing))) ||
-          getParameter("operation:strategy", "") == "face") {
+          ((stockToLeave > 0) && (verticalStockToLeave >= smoothingSettings.thresholdRoughing)))) {
         smoothing.level = smoothingSettings.roughing; // set roughing level
       } else if ((stockToLeave > smoothingSettings.thresholdSemiFinishing) ||
                 ((stockToLeave > 0) && (verticalStockToLeave > smoothingSettings.thresholdSemiFinishing))) {
@@ -818,8 +823,7 @@ function initializeSmoothing() {
         smoothing.level = smoothingSettings.finishing; // set finishing level
       }
     } else { // detemine auto smoothing level based on operation tolerance instead of stockToLeave
-      if (smoothing.tolerance >= smoothingSettings.thresholdRoughing ||
-          getParameter("operation:strategy", "") == "face") {
+      if (smoothing.tolerance >= smoothingSettings.thresholdRoughing) {
         smoothing.level = smoothingSettings.roughing; // set roughing level
       } else if (smoothing.tolerance > smoothingSettings.thresholdSemiFinishing) {
           smoothing.level = smoothingSettings.semi; // set semi level
