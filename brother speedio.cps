@@ -390,6 +390,15 @@ probeMultipleFeatures = true;
 var jobDescription = "";
 var firstNote = true; // handles output of notes from multiple setups
 
+// Convert angles from <0 degrees to positive
+function ensurePositiveAngle(angle) {
+  if (angle < 0) {
+    return angle + 360.0;
+  } else {
+    return angle;
+  }
+}
+
 /**
   Writes the specified block.
 */
@@ -1892,37 +1901,69 @@ function onCyclePoint(x, y, z) {
       }
       break;
     case "probing-x":
+      var edgeCoord = x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
       protectedProbeMove(cycle, x, y, z - cycle.depth);
-      writeBlock(
-        gFormat.format(65), "P" + (getProperty("probingType") == "Renishaw" ? 8811 : 8700),
-        conditional(getProperty("probingType") == "Blum", "A1"),
-        conditional(getProperty("probingType") == "Blum", "M3"),
-        "X" + xyzFormat.format(x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2)),
-        "Q" + xyzFormat.format(cycle.probeOvertravel),
-        getProbingArguments(cycle, true)
-      );
+      if (getProperty("probingType") == "Renishaw") {
+        writeBlock(
+          gFormat.format(65), "P" + 8811,
+          "X" + xyzFormat.format(x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2)),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      } else {
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "I" + xyzFormat.format(edgeCoord),
+          "X" + xyzFormat.format(edgeCoord),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      }
       break;
     case "probing-y":
+      var edgeCoord = y + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
       protectedProbeMove(cycle, x, y, z - cycle.depth);
-      writeBlock(
-        gFormat.format(65), "P" + (getProperty("probingType") == "Renishaw" ? 8811 : 8700),
-        conditional(getProperty("probingType") == "Blum", "A1"),
-        conditional(getProperty("probingType") == "Blum", "M3"),
-        "Y" + xyzFormat.format(y + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2)),
-        "Q" + xyzFormat.format(cycle.probeOvertravel),
-        getProbingArguments(cycle, true)
-      );
+      if (getProperty("probingType") == "Renishaw") {
+        writeBlock(
+          gFormat.format(65), "P" + 8811,
+          "Y" + xyzFormat.format(y + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2)),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      } else {
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "J" + xyzFormat.format(edgeCoord),
+          "Y" + xyzFormat.format(edgeCoord),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      }
       break;
     case "probing-z":
       protectedProbeMove(cycle, x, y, Math.min(z - cycle.depth + cycle.probeClearance, cycle.retract));
-      writeBlock(
-        gFormat.format(65), "P" + (getProperty("probingType") == "Renishaw" ? 8811 : 8700),
-        conditional(getProperty("probingType") == "Blum", "A1"),
-        conditional(getProperty("probingType") == "Blum", "M3"),
-        "Z" + xyzFormat.format(z - cycle.depth),
-        "Q" + xyzFormat.format(cycle.probeOvertravel),
-        getProbingArguments(cycle, true)
-      );
+      if (getProperty("probingType") == "Renishaw") {
+        writeBlock(
+          gFormat.format(65), "P" + 8811,
+          "Z" + xyzFormat.format(z - cycle.depth),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      } else {
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "K" + xyzFormat.format(z - cycle.depth),
+          zOutput.format(approach(cycle.approach1) * cycle.probeClearance),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+      }
       break;
     case "probing-x-wall":
       protectedProbeMove(cycle, x, y, z);
@@ -1940,9 +1981,10 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
           "S" + xyzFormat.format(cycle.width1),
           "X1",
-          "Z" + xyzFormat.format(z - cycle.depth),
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           "R" + xyzFormat.format(cycle.probeClearance),
           getProbingArguments(cycle, true)
@@ -1965,8 +2007,9 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "J" + xyzFormat.format(y),
           "S" + xyzFormat.format(cycle.width1),
-          "Z" + xyzFormat.format(z - cycle.depth),
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
           "Y1",
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           "R" + xyzFormat.format(cycle.probeClearance),
@@ -1989,6 +2032,7 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
           "S" + xyzFormat.format(cycle.width1),
           "X1",
           "Q" + xyzFormat.format(cycle.probeOvertravel),
@@ -2012,9 +2056,10 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
           "R" + xyzFormat.format(-cycle.probeClearance),
           "S" + xyzFormat.format(cycle.width1),
-          "Z" + xyzFormat.format(z - cycle.depth),
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
           "X1",
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           getProbingArguments(cycle, true)
@@ -2036,6 +2081,7 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "J" + xyzFormat.format(y),
           "S" + xyzFormat.format(cycle.width1),
           "Y1",
           "Q" + xyzFormat.format(cycle.probeOvertravel),
@@ -2059,6 +2105,7 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "J" + xyzFormat.format(y),
           "R" + xyzFormat.format(-cycle.probeClearance),
           "S" + xyzFormat.format(cycle.width1),
           "Z" + xyzFormat.format(z - cycle.depth),
@@ -2084,6 +2131,8 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
           "S" + xyzFormat.format(cycle.width1),
           "Z" + xyzFormat.format(z - cycle.depth),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
@@ -2107,7 +2156,21 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY circular partial boss probing is not supported."));
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "H" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleA)),
+          "U" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleB)),
+          "V" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleC)),
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
+          "S" + xyzFormat.format(cycle.width1),
+          "Z" + xyzFormat.format(z - cycle.depth),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          "R" + xyzFormat.format(cycle.probeClearance),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-circular-hole":
@@ -2125,6 +2188,8 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
           "S" + xyzFormat.format(cycle.width1),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           getProbingArguments(cycle, true)
@@ -2144,7 +2209,19 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY circular partial hole probing is not supported."));
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "H" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleA)),
+          "U" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleB)),
+          "V" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleC)),
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
+          "S" + xyzFormat.format(cycle.width1),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-circular-hole-with-island":
@@ -2163,10 +2240,12 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
           "R" + xyzFormat.format(-cycle.probeClearance),
           "S" + xyzFormat.format(cycle.width1),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
-          "Z" + xyzFormat.format(z - cycle.depth),
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
           getProbingArguments(cycle, true)
         );
       }
@@ -2186,7 +2265,21 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY circular partial hole with island probing is not supported."));
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "H" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleA)),
+          "U" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleB)),
+          "V" + xyzFormat.format(ensurePositiveAngle(cycle.partialCircleAngleC)),
+          "I" + xyzFormat.format(x),
+          "J" + xyzFormat.format(y),
+          "R" + xyzFormat.format(-cycle.probeClearance),
+          "S" + xyzFormat.format(cycle.width1),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-rectangular-hole":
@@ -2207,7 +2300,28 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY rectangular hole probing is not supported."));
+        zOutput.reset();
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "M3",
+          "A1",
+          "I" + xyzFormat.format(x),
+          "S" + xyzFormat.format(cycle.width1),
+          "X1",
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
+        zOutput.reset();
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "M3",
+          "A1",
+          "J" + xyzFormat.format(y),
+          "S" + xyzFormat.format(cycle.width2),
+          "Y1",
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-rectangular-boss":
@@ -2235,6 +2349,7 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "I" + xyzFormat.format(x),
           "S" + xyzFormat.format(cycle.width1),
           "X1",
           "Z" + xyzFormat.format(z - cycle.depth),
@@ -2247,6 +2362,7 @@ function onCyclePoint(x, y, z) {
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
+          "J" + xyzFormat.format(y),
           "S" + xyzFormat.format(cycle.width2),
           "Y1",
           "Z" + xyzFormat.format(z - cycle.depth),
@@ -2276,19 +2392,44 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY rectangular hole with island probing is not supported."));
+        zOutput.reset();
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "I" + xyzFormat.format(x),
+          "S" + xyzFormat.format(cycle.width1),
+          "X1",
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          "R" + xyzFormat.format(-cycle.probeClearance),
+          getProbingArguments(cycle, true)
+        );
+        zOutput.reset();
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "J" + xyzFormat.format(y),
+          "S" + xyzFormat.format(cycle.width2),
+          "Y1",
+          "Z" + xyzFormat.format(z - cycle.depth + (tool.diameter /2)),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          "R" + xyzFormat.format(-cycle.probeClearance),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-inner-corner":
+      var cornerX = x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
+      var cornerY = y + approach(cycle.approach2) * (cycle.probeClearance + tool.diameter / 2);
+      var cornerI = 0;
+      var cornerJ = 0;
+      if (cycle.probeSpacing !== undefined) {
+        cornerI = cycle.probeSpacing;
+        cornerJ = cycle.probeSpacing;
+      }
       if (getProperty("probingType") == "Renishaw") {
-        var cornerX = x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
-        var cornerY = y + approach(cycle.approach2) * (cycle.probeClearance + tool.diameter / 2);
-        var cornerI = 0;
-        var cornerJ = 0;
-        if (cycle.probeSpacing !== undefined) {
-          cornerI = cycle.probeSpacing;
-          cornerJ = cycle.probeSpacing;
-        }
         if ((cornerI != 0) && (cornerJ != 0)) {
           if (currentSection.strategy == "probe") {
             setProbeAngleMethod();
@@ -2304,40 +2445,59 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        error(localize("XY inner corner probing is not supported."));
+        // FIXME: Need to implement the setProbeAngleMethod piece
+        protectedProbeMove(cycle, x, y, z - cycle.depth);
+        // FIXME: Need to check this works, or use 2x probing ops instead
+        writeComment("CHECK-ME!!")
+        writeBlock(
+          gFormat.format(65), "P" + 8700,
+          "A1",
+          "M3",
+          "I" + xyzFormat.format(cornerX),
+          "J" + xyzFormat.format(cornerY),
+          "X" + xyzFormat.format(cornerX),
+          "Y" + xyzFormat.format(cornerY),
+          "Q" + xyzFormat.format(cycle.probeOvertravel),
+          "R" + xyzFormat.format(-cycle.probeClearance),
+          getProbingArguments(cycle, true)
+        );
       }
       break;
     case "probing-xy-outer-corner":
-      var cornerX = x + approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
-      var cornerY = y + approach(cycle.approach2) * (cycle.probeClearance + tool.diameter / 2);
+      var cornerX = approach(cycle.approach1) * (cycle.probeClearance + tool.diameter / 2);
+      var cornerY = approach(cycle.approach2) * (cycle.probeClearance + tool.diameter / 2);
       var cornerI = 0;
       var cornerJ = 0;
       if (cycle.probeSpacing !== undefined) {
         cornerI = cycle.probeSpacing;
         cornerJ = cycle.probeSpacing;
       }
-      if ((cornerI != 0) && (cornerJ != 0)) {
-        if (currentSection.strategy == "probe") {
-          setProbeAngleMethod();
-          probeVariables.compensationXY = "X[#135] Y[#136]";
-        }
-      }
-      protectedProbeMove(cycle, x, y, z - cycle.depth);
       if (getProperty("probingType") == "Renishaw") {
+        if ((cornerI != 0) && (cornerJ != 0)) {
+          if (currentSection.strategy == "probe") {
+            setProbeAngleMethod();
+            probeVariables.compensationXY = "X[#135] Y[#136]";
+          }
+        }
+        protectedProbeMove(cycle, x, y, z - cycle.depth);
         writeBlock(
-          gFormat.format(65), "P" + 8816, xOutput.format(cornerX), yOutput.format(cornerY),
+          gFormat.format(65), "P" + 8816, xOutput.format(x + cornerX), yOutput.format(y + cornerY),
           conditional(cornerI != 0, "I" + xyzFormat.format(cornerI)),
           conditional(cornerJ != 0, "J" + xyzFormat.format(cornerJ)),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           getProbingArguments(cycle, true)
         );
       } else {
+        // FIXME: Need to implement the setProbeAngleMethod piece
+        protectedProbeMove(cycle, x, y, z - cycle.depth);
         writeBlock(
           gFormat.format(65), "P" + 8700,
           "A1",
           "M3",
-          xOutput.format(cornerX),
-          yOutput.format(cornerY),
+          "I" + xyzFormat.format(x + cornerX),
+          "J" + xyzFormat.format(y + cornerY),
+          "X" + xyzFormat.format(x + (2 * cornerX)),
+          "Y" + xyzFormat.format(y + (2 * cornerY)),
           "Q" + xyzFormat.format(cycle.probeOvertravel),
           getProbingArguments(cycle, true)
         );
