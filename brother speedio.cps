@@ -916,13 +916,15 @@ function initializeSmoothing() {
   break;
   }
 
+  var isFinishing = radiusCompensation ||
+                    (currentSection.strategy == "contour2d" || currentSection.strategy == "slot" ||
+                    currentSection.strategy == "path3d" || currentSection.strategy == "bore" || currentSection.strategy == "chamfer2d");
+
   // automatically determine smoothing level
   if (smoothing.level == 9999) {
     if (currentSection.strategy == "face") {
       smoothing.level = smoothingSettings.roughing; // set roughing level
-    } else if (currentSection.strategy == "contour2d" || currentSection.strategy == "slot" ||
-              currentSection.strategy == "path3d" || currentSection.strategy == "bore" ||
-              currentSection.strategy == "chamfer2d") {
+    } else if (isFinishing) {
       smoothing.level = smoothingSettings.finishing; // set finishing level
     } else if (smoothingSettings.autoLevelCriteria == "stock") { // determine auto smoothing level based on stockToLeave
       var stockToLeave = xyzFormat.getResultingValue(getParameter("operation:stockToLeave", 0));
