@@ -135,6 +135,14 @@ properties = {
     value      : false,
     scope      : "post"
   },
+  partsCounter: {
+    title      : "Activate parts counter",
+    description: "Output M211 to activate parts counter",
+    group      : "configuration",
+    type       : "boolean",
+    value      : false,
+    scope      : "post",
+  },
   hasAAxis: {
     title      : "Use A-axis",
     description: "Specifies whether to use the A axis.",
@@ -779,6 +787,11 @@ function onOpen() {
   // absolute coordinates and feed per min
   writeBlock(gFormat.format(0), gAbsIncModal.format(90), gFormat.format(40), gFormat.format(80));
   writeBlock(gFeedModeModal.format(94), gFormat.format(49));
+
+  if (getProperty("partsCounter")) {
+    writeComment("ACTIVATE PARTS COUNTER");
+    writeBlock("M211");
+  }
 
   writeComment("File output in " + (unit == 1 ? "MM" : "inches") + ". Please ensure the unit is set correctly on the control");
 }
