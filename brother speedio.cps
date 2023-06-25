@@ -3801,7 +3801,9 @@ function onClose() {
   }
 
   // reload first tool (handles retract)
-  writeBlock(gFormat.format(100), "T" + toolFormat.format(getSection(0).getTool().number));
+  if (getNumberOfSections() > 0) {
+    writeBlock(gFormat.format(100), "T" + toolFormat.format(getSection(0).getTool().number));
+  }
   if (useMultiAxisFeatures) {
     writeRetract(Z);
   } else {
