@@ -1433,6 +1433,7 @@ function onSection() {
   if (insertToolCall) {
     forceModals();
     currentWorkOffset = undefined; // force work offset when changing tool
+    writeBlock(gRotationModal.format(69)); // cancel frame
   }
 
   // Output modal commands here
@@ -3396,6 +3397,11 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
   var start = getCurrentPosition();
 
   if (isFullCircle()) {
+    if ((gRotationModal.getCurrent() == 68) && (getCircularPlane() != PLANE_XY)) { // Can't switch planes while rotation active
+      writeComment("Linearising due to active G68 rotation");
+      linearize(tolerance);
+      return;
+    }
     if (getProperty("useRadius") || isHelical()) { // radius mode does not support full arcs
       linearize(tolerance);
       return;
@@ -3414,6 +3420,11 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
       linearize(tolerance);
     }
   } else if (!getProperty("useRadius")) {
+    if ((gRotationModal.getCurrent() == 68) && (getCircularPlane() != PLANE_XY)) { // Can't switch planes while rotation active
+      writeComment("Linearising due to active G68 rotation");
+      linearize(tolerance);
+      return;
+    }
     switch (getCircularPlane()) {
     case PLANE_XY:
       writeBlock(gFeedModeModal.format(94), gAbsIncModal.format(90), gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x, 0), jOutput.format(cy - start.y, 0), getFeed(feed));
@@ -3428,6 +3439,11 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
       linearize(tolerance);
     }
   } else { // use radius mode
+    if ((gRotationModal.getCurrent() == 68) && (getCircularPlane() != PLANE_XY)) { // Can't switch planes while rotation active
+      writeComment("Linearising due to active G68 rotation");
+      linearize(tolerance);
+      return;
+    }
     var r = getCircularRadius();
     if (toDeg(getCircularSweep()) > 180) {
       r = -r; // allow up to <360 deg arcs
