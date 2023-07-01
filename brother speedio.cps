@@ -1756,11 +1756,11 @@ function setProbeAngle() {
     case "G68":
       gRotationModal.reset();
       gAbsIncModal.reset();
-      var n = xyzFormat.format(0);
-      writeBlock(
-        gRotationModal.format(68), gAbsIncModal.format(90),
-        probeVariables.compensationXY, "Z" + n, "I" + n, "J" + n, "K" + xyzFormat.format(1), "R[#144]"
-      );
+      if (getProperty("probingType") == "Renishaw") {
+        writeBlock(gRotationModal.format(68), gAbsIncModal.format(90), probeVariables.compensationXY, "R[#144]");
+      } else {
+        writeBlock(gRotationModal.format(68), gAbsIncModal.format(90), probeVariables.compensationXY, "R[#142]");
+      }
       validateWorkOffset = true;
       break;
     case "AXIS_ROT":
@@ -2623,7 +2623,12 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        // FIXME: Need to implement the setProbeAngleMethod piece
+        if ((cornerI != 0) && (cornerJ != 0)) {
+          if (currentSection.strategy == "probe") {
+            setProbeAngleMethod();
+            probeVariables.compensationXY = "X[#100] Y[#101]";
+          }
+        }
         protectedProbeMove(cycle, x, y, z - cycle.depth);
         // FIXME: Need to check this works, or use 2x probing ops instead
         writeComment("CHECK-ME!!")
@@ -2666,7 +2671,12 @@ function onCyclePoint(x, y, z) {
           getProbingArguments(cycle, true)
         );
       } else {
-        // FIXME: Need to implement the setProbeAngleMethod piece
+        if ((cornerI != 0) && (cornerJ != 0)) {
+          if (currentSection.strategy == "probe") {
+            setProbeAngleMethod();
+            probeVariables.compensationXY = "X[#100] Y[#101]";
+          }
+        }
         protectedProbeMove(cycle, x, y, z - cycle.depth);
         writeBlock(
           gFormat.format(65), "P" + 8700,
