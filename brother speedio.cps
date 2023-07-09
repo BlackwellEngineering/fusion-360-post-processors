@@ -3626,6 +3626,19 @@ function onCommand(command) {
   case COMMAND_TOOL_MEASURE:
     measureTool = true;
     return;
+  case COMMAND_VERIFY:
+    writeln("");
+    writeComment("Stop for verification");
+    optionalSection = true;
+    writeBlock(mFormat.format(0));
+    forceSpindleSpeed = true;
+    forceCoolant = true;
+    writeRetract(Z);
+    if (getProperty("positionAtEnd") != "noMove") {
+      writeRetract(X, Y);
+    }
+    optionalSection = false;
+    return;
   }
 
   var stringId = getCommandStringId(command);
