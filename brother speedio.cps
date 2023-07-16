@@ -28,7 +28,7 @@ extension = "NC";
 programNameIsInteger = false;
 setCodePage("ascii");
 
-capabilities = CAPABILITY_MILLING;
+capabilities = CAPABILITY_MILLING | CAPABILITY_MACHINE_SIMULATION;
 tolerance = spatial(0.002, MM);
 
 minimumChordLength = spatial(0.25, MM);
@@ -63,7 +63,7 @@ properties = {
     description: "Preloads the next tool at a tool change (if any).",
     group      : "preferences",
     type       : "boolean",
-    value      : true,
+    value      : false,
     scope      : "post"
   },
   showSequenceNumbers: {
@@ -76,7 +76,7 @@ properties = {
       {title:"No", id:"false"},
       {title:"Only on tool change", id:"toolChange"}
     ],
-    value: "true",
+    value: "toolChange",
     scope: "post"
   },
   sequenceNumberStart: {
@@ -168,7 +168,7 @@ properties = {
       {title:"Renishaw", id:"Renishaw"},
       {title:"Blum", id:"Blum"}
     ],
-    value: "Renishaw",
+    value: "Blum",
     scope: "post"
   },
   washdownCoolant: {
@@ -182,7 +182,7 @@ properties = {
       {title:"End of operation", id:"operationEnd"},
       {title:"Program end", id:"programEnd"}
     ],
-    value: "off",
+    value: "programEnd",
     scope: "post"
   },
   usePitchForTapping: {
@@ -272,7 +272,7 @@ properties = {
     description: "Specifies the tolerance for which tool break detection will raise an alarm.",
     group      : "preferences",
     type       : "spatial",
-    value      : 0.05,
+    value      : 0.01,
     scope      : "post"
   },
   useInverseTime: {
@@ -340,7 +340,7 @@ wcsDefinitions = {
   useZeroOffset: false,
   wcs          : [
     {name:"Standard", format:"G", range:[54, 59]},
-    {name:"Extended", format:"G54.1 P", range:[1, 48]},
+    {name:"Extended", format:"G54.1 P", range:[1, 300]},
     {name:"G54 G54.2Pn Rotary", format:"G54 G54.2 P", range:[1, 8]},
     {name:"G55 G54.2Pn Rotary", format:"G55 G54.2 P", range:[1, 8]}
   ]
